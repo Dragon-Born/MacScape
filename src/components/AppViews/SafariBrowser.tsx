@@ -35,7 +35,8 @@ export function SafariBrowser({ onClose, onMinimize, onMaximize, title }: Safari
     'developer.mozilla.org',
     'w3schools.com',
     'example.com',
-    'httpbin.org'
+    'httpbin.org',
+    'duckduckgo.com'
   ]
 
   const isIframeFriendly = (url: string) => {
@@ -50,7 +51,7 @@ export function SafariBrowser({ onClose, onMinimize, onMaximize, title }: Safari
     if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
       // If it looks like a search query, use it as-is for search
       if (!normalizedUrl.includes('.') || normalizedUrl.includes(' ')) {
-        normalizedUrl = `https://www.google.com/search?q=${encodeURIComponent(normalizedUrl)}`
+        normalizedUrl = `https://duckduckgo.com/?q=${encodeURIComponent(normalizedUrl)}`
       } else {
         normalizedUrl = `https://${normalizedUrl}`
       }
@@ -183,7 +184,7 @@ export function SafariBrowser({ onClose, onMinimize, onMaximize, title }: Safari
       }
 
       // For search results, show a cleaner format
-      if (domain === 'google.com' && urlObj.pathname === '/search') {
+      if (domain === 'duckduckgo.com' && urlObj.searchParams.has('q')) {
         const query = urlObj.searchParams.get('q')
         if (query) {
           return `Search: ${query.length > 25 ? query.substring(0, 22) + '...' : query}`
@@ -362,17 +363,17 @@ export function SafariBrowser({ onClose, onMinimize, onMaximize, title }: Safari
         <h1>Safari</h1>
         <p class="subtitle">A clean, fast, and secure browsing experience</p>
         
-        <div class="quick-links">
-          <button class="quick-link" onclick="parent.postMessage({action: 'navigate', url: 'https://en.wikipedia.org'}, '*')">
-            Wikipedia
-          </button>
-          <button class="quick-link" onclick="parent.postMessage({action: 'navigate', url: 'https://example.com'}, '*')">
-            Example
-          </button>
-          <button class="quick-link" onclick="parent.postMessage({action: 'navigate', url: 'https://developer.mozilla.org'}, '*')">
-            MDN Docs
-          </button>
-        </div>
+                 <div class="quick-links">
+           <button class="quick-link" onclick="parent.postMessage({action: 'navigate', url: 'https://duckduckgo.com'}, '*')">
+             DuckDuckGo
+           </button>
+           <button class="quick-link" onclick="parent.postMessage({action: 'navigate', url: 'https://en.wikipedia.org'}, '*')">
+             Wikipedia
+           </button>
+           <button class="quick-link" onclick="parent.postMessage({action: 'navigate', url: 'https://developer.mozilla.org'}, '*')">
+             MDN Docs
+           </button>
+         </div>
       </div>
       
       <div class="version">macOS Web Desktop</div>
@@ -498,10 +499,10 @@ export function SafariBrowser({ onClose, onMinimize, onMaximize, title }: Safari
                   Suggested sites:
                 </div>
                 {[
+                  { url: 'duckduckgo.com', title: 'DuckDuckGo Search' },
                   { url: 'en.wikipedia.org', title: 'Wikipedia' },
-                  { url: 'example.com', title: 'Example Site' },
                   { url: 'developer.mozilla.org', title: 'MDN Docs' },
-                  { url: 'httpbin.org', title: 'HTTP Testing' }
+                  { url: 'example.com', title: 'Example Site' }
                 ].map((site) => (
                   <button
                     key={site.url}
@@ -578,21 +579,21 @@ export function SafariBrowser({ onClose, onMinimize, onMaximize, title }: Safari
                   <button
                     onClick={() => {
                       setShowCorsError(false)
-                      navigateToUrl('https://en.wikipedia.org')
+                      navigateToUrl('https://duckduckgo.com')
                     }}
                     className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
                   >
-                    Try Wikipedia
+                    Try DuckDuckGo
                   </button>
                   
                   <button
                     onClick={() => {
                       setShowCorsError(false)
-                      navigateToUrl('https://example.com')
+                      navigateToUrl('https://en.wikipedia.org')
                     }}
                     className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm"
                   >
-                    Try Example.com
+                    Try Wikipedia
                   </button>
                 </div>
 
@@ -609,7 +610,7 @@ export function SafariBrowser({ onClose, onMinimize, onMaximize, title }: Safari
 
               <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-xs text-blue-700 leading-relaxed">
-                  <strong>💡 Tip:</strong> Try iframe-friendly sites like Wikipedia, GitHub Pages, 
+                  <strong>💡 Tip:</strong> Try iframe-friendly sites like DuckDuckGo, Wikipedia, GitHub Pages, 
                   CodePen, or developer documentation sites for the best experience.
                 </p>
               </div>

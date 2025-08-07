@@ -1,5 +1,6 @@
 import { NotesApp } from '@/components/AppViews/NotesApp'
 import { SafariBrowser } from '@/components/AppViews/SafariBrowser'
+import { VSCodeApp } from '@/components/AppViews/VSCodeApp'
 import { ComponentType } from 'react'
 
 export interface DockAppConfig {
@@ -31,6 +32,34 @@ export const dockApps: DockAppConfig[] = [
     defaultSize: { width: 800, height: 600 }
   },
   {
+    id: 'safari',
+    name: 'Safari',
+    icon: '🌐',
+    iconPath: '/AppIcons/safari.png',
+    component: SafariBrowser,
+    hasOwnHeader: true,
+    defaultPosition: { x: 80, y: 20 },
+    defaultSize: { width: 1000, height: 700 }
+  },
+  {
+    id: 'vscode',
+    name: 'VSCode',
+    icon: '💻',
+    iconPath: '/AppIcons/vscode.png', // This one exists!
+    component: VSCodeApp,
+    defaultPosition: { x: 250, y: 50 },
+    defaultSize: { width: 1000, height: 600 }
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    icon: '💻',
+    iconPath: '/AppIcons/terminal.png', // This one exists!
+    component: NotesApp, // Placeholder
+    defaultPosition: { x: 200, y: 200 },
+    defaultSize: { width: 700, height: 500 }
+  },
+  {
     id: 'notes',
     name: 'Notes',
     icon: '📝',
@@ -47,25 +76,6 @@ export const dockApps: DockAppConfig[] = [
     component: NotesApp, // Placeholder - we'll create more apps later
     defaultPosition: { x: 150, y: 150 },
     defaultSize: { width: 300, height: 400 }
-  },
-  {
-    id: 'terminal',
-    name: 'Terminal',
-    icon: '💻',
-    iconPath: '/AppIcons/terminal.png', // This one exists!
-    component: NotesApp, // Placeholder
-    defaultPosition: { x: 200, y: 200 },
-    defaultSize: { width: 700, height: 500 }
-  },
-  {
-    id: 'safari',
-    name: 'Safari',
-    icon: '🌐',
-    iconPath: '/AppIcons/safari.png',
-    component: SafariBrowser,
-    hasOwnHeader: true,
-    defaultPosition: { x: 80, y: 20 },
-    defaultSize: { width: 1000, height: 700 }
   }
 ]
 

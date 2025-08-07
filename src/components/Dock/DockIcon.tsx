@@ -15,6 +15,7 @@ export function DockIcon({ app, onLaunch, index, isRunning = false }: DockIconPr
   const [isHovered, setIsHovered] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [isBouncing, setIsBouncing] = useState(false)
 
   // Preload the image to prevent refetching
   useEffect(() => {
@@ -26,23 +27,36 @@ export function DockIcon({ app, onLaunch, index, isRunning = false }: DockIconPr
     }
   }, [app.iconPath])
 
+  const handleClick = () => {
+    setIsBouncing(true)
+    onLaunch()
+    // Reset bounce after animation (even slower like real macOS)
+    setTimeout(() => setIsBouncing(false), 1000)
+  }
+
   return (
-    <button
-      className="relative flex items-center justify-center w-16 h-16 pb-1 transition-transform duration-200 ease-out"
+    <motion.button
+      className="relative flex items-center justify-center w-16 h-16 pb-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={onLaunch}
+      onClick={handleClick}
       style={{
         background: 'transparent',
-        transform: isHovered ? 'scale(1.05)' : 'scale(1)',
         zIndex: isHovered ? 50 : 10,
       }}
-      onMouseDown={(e) => {
-        e.currentTarget.style.transform = 'scale(0.9)'
+      animate={{
+        scale: isHovered ? 1.05 : 1,
+        y: isBouncing ? [0, -20, 0] : 0,
       }}
-      onMouseUp={(e) => {
-        e.currentTarget.style.transform = isHovered ? 'scale(1)' : 'scale(1)'
+      transition={{
+        scale: { duration: 0.2, ease: 'easeOut' },
+        y: { 
+          duration: 1.5, 
+          ease: [0.25, 0.46, 0.45, 0.94],
+          times: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+        }
       }}
+      whileTap={{ scale: 0.9 }}
     >
       {/* App icon - large icon in compact container */}
       {app.iconPath && !imageError && imageLoaded ? (
@@ -97,6 +111,6 @@ export function DockIcon({ app, onLaunch, index, isRunning = false }: DockIconPr
           {app.name}
         </motion.div>
       )}
-    </button>
+    </motion.button>
   )
 } 
