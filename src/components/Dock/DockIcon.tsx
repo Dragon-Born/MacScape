@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { DockAppConfig } from './dockConfig'
+import { useContextMenu, ContextMenuItem } from '@/context/ContextMenuContext'
 
 interface DockIconProps {
   app: DockAppConfig
@@ -16,6 +17,7 @@ export function DockIcon({ app, onLaunch, index, isRunning = false }: DockIconPr
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [isBouncing, setIsBouncing] = useState(false)
+  const { openContextMenu } = useContextMenu()
 
   // Preload the image to prevent refetching
   useEffect(() => {
@@ -34,12 +36,80 @@ export function DockIcon({ app, onLaunch, index, isRunning = false }: DockIconPr
     setTimeout(() => setIsBouncing(false), 1000)
   }
 
+  const getDockContextMenuItems = (): ContextMenuItem[] => {
+    const baseItems: ContextMenuItem[] = [
+      {
+        id: 'open',
+        label: `Open ${app.name}`,
+        onClick: () => onLaunch()
+      }
+    ]
+
+    if (isRunning) {
+      baseItems.push(
+        {
+          id: 'separator-1',
+          label: '',
+          separator: true,
+          onClick: () => {}
+        },
+        {
+          id: 'hide',
+          label: `Hide ${app.name}`,
+          onClick: () => console.log(`Hide ${app.name}`)
+        },
+        {
+          id: 'quit',
+          label: `Quit ${app.name}`,
+          onClick: () => console.log(`Quit ${app.name}`)
+        }
+      )
+    }
+
+    if (!app.isTrash) {
+      baseItems.push(
+        {
+          id: 'separator-2',
+          label: '',
+          separator: true,
+          onClick: () => {}
+        },
+        {
+          id: 'options',
+          label: 'Options',
+          onClick: () => console.log(`${app.name} options`)
+        },
+        {
+          id: 'remove-from-dock',
+          label: 'Remove from Dock',
+          onClick: () => console.log(`Remove ${app.name} from dock`)
+        }
+      )
+    }
+
+    return baseItems
+  }
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    openContextMenu(
+      e.clientX,
+      e.clientY,
+      getDockContextMenuItems(),
+      'dock-icon',
+      app.id
+    )
+  }
+
   return (
     <motion.button
       className="relative flex items-center justify-center w-16 h-16 pb-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
       style={{
         background: 'transparent',
         zIndex: isHovered ? 50 : 10,
@@ -51,7 +121,7 @@ export function DockIcon({ app, onLaunch, index, isRunning = false }: DockIconPr
       transition={{
         scale: { duration: 0.2, ease: 'easeOut' },
         y: { 
-          duration: 1.5, 
+          duration: 1.0, 
           ease: [0.25, 0.46, 0.45, 0.94],
           times: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
         }

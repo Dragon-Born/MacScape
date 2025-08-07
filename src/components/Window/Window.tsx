@@ -22,16 +22,36 @@ export function Window({ window }: WindowProps) {
   const Component = window.component
 
   const handleDragStop = (e: any, d: any) => {
-    updateWindowPosition(window.id, d.x, d.y)
+    // Enforce topbar and dock boundaries
+    const topbarHeight = 32
+    const dockAreaHeight = 120 // Dock height + margins
+    const viewportHeight = typeof globalThis !== 'undefined' ? globalThis.innerHeight : 1080
+    const viewportWidth = typeof globalThis !== 'undefined' ? globalThis.innerWidth : 1920
+    
+    // Constrain position to avoid topbar and dock
+    const constrainedX = Math.max(0, Math.min(d.x, viewportWidth - window.width))
+    const constrainedY = Math.max(topbarHeight, Math.min(d.y, viewportHeight - dockAreaHeight - window.height))
+    
+    updateWindowPosition(window.id, constrainedX, constrainedY)
   }
 
   const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
-    updateWindowSize(
-      window.id,
-      parseInt(ref.style.width),
-      parseInt(ref.style.height)
-    )
-    updateWindowPosition(window.id, position.x, position.y)
+    const newWidth = parseInt(ref.style.width)
+    const newHeight = parseInt(ref.style.height)
+    
+    updateWindowSize(window.id, newWidth, newHeight)
+    
+    // Enforce boundaries after resize
+    const topbarHeight = 32
+    const dockAreaHeight = 120 // Dock height + margins
+    const viewportHeight = typeof globalThis !== 'undefined' ? globalThis.innerHeight : 1080
+    const viewportWidth = typeof globalThis !== 'undefined' ? globalThis.innerWidth : 1920
+    
+    // Constrain position to avoid topbar and dock
+    const constrainedX = Math.max(0, Math.min(position.x, viewportWidth - newWidth))
+    const constrainedY = Math.max(topbarHeight, Math.min(position.y, viewportHeight - dockAreaHeight - newHeight))
+    
+    updateWindowPosition(window.id, constrainedX, constrainedY)
   }
 
   const handleMouseDown = () => {
@@ -50,6 +70,9 @@ export function Window({ window }: WindowProps) {
     ? { width: '100vw', height: '100vh' }
     : { width: window.width, height: window.height }
 
+  // Use window bounds but we'll implement custom boundary checking
+  const dragBounds = window.isMaximized ? undefined : "window"
+
   return (
     <Rnd
       position={position}
@@ -60,10 +83,11 @@ export function Window({ window }: WindowProps) {
       disableDragging={window.isMaximized}
       enableResizing={!window.isMaximized}
       dragHandleClassName="window-drag-handle"
+      bounds={dragBounds}
       style={{
         zIndex: window.zIndex,
       }}
-      className="rounded-xl overflow-hidden"
+      className="window rounded-xl overflow-hidden"
       minWidth={320}
       minHeight={240}
     >

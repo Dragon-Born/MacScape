@@ -51,7 +51,7 @@ export function Dock() {
 
   return (
     <motion.div
-      className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-40"
+      className="dock fixed bottom-2 left-1/2 transform -translate-x-1/2 z-[9999]"
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
