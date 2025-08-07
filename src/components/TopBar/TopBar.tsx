@@ -69,7 +69,7 @@ export function TopBar() {
           </button>
           
           {/* App Menu Items */}
-          <div className="flex items-center space-x-1 text-white font-medium text-[0.9rem]">
+          <div className="flex items-center space-x-1 text-white font-medium text-[0.9rem] mx-2">
             <button className="px-2 py-1 rounded-md transition-all duration-150 active:bg-white/20 text-shadow-sm font-bold">
               Finder
             </button>
@@ -137,7 +137,7 @@ export function TopBar() {
             />
           </button>
           {/* Date & Time */}
-          <button className="rounded-md transition-all duration-150 active:bg-white/20 text-white font-medium text-[0.9rem] pr-3 py-1.5 px-1">
+          <button className="rounded-md transition-all duration-150 active:bg-white/20 text-white font-medium text-[0.85rem] pr-3 py-1 px-1">
             {mounted && currentTime ? formatTime(currentTime) : ''}
           </button>
         </div>

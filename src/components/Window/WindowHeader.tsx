@@ -15,9 +15,9 @@ export function WindowHeader({ title, onClose, onMinimize, onMaximize }: WindowH
     <div 
       className="flex items-center justify-between border-b px-5 py-3 select-none"
       style={{
-        background: 'rgba(255, 255, 255, 0.6)',
-        backdropFilter: 'blur(20px) saturate(150%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+        background: 'rgba(255, 255, 255, 0.0)',
+        backdropFilter: 'blur(1px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(1px) saturate(150%)',
         borderBottomColor: 'rgba(0, 0, 0, 0.2)',
       }}
     >
