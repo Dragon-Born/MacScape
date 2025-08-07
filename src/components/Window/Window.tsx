@@ -21,7 +21,9 @@ export function Window({ window }: WindowProps) {
   } = useWindowManager()
 
   const [isDragging, setIsDragging] = useState(false)
+  const [isResizing, setIsResizing] = useState(false)
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const Component = window.component
 
   const handleDragStart = () => {
@@ -34,6 +36,14 @@ export function Window({ window }: WindowProps) {
 
   const handleDrag = () => {
     // Currently dragging
+  }
+
+  const handleResizeStart = () => {
+    // Clear any existing timeout
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current)
+    }
+    setIsResizing(true)
   }
 
   const handleDragStop = (e: any, d: any) => {
@@ -76,18 +86,27 @@ export function Window({ window }: WindowProps) {
     const constrainedY = Math.max(topbarHeight, Math.min(position.y, viewportHeight - dockAreaHeight - newHeight))
     
     updateWindowPosition(window.id, constrainedX, constrainedY)
+    
+    // Reset resizing state after a brief delay to prevent re-animation
+    resizeTimeoutRef.current = setTimeout(() => {
+      setIsResizing(false)
+    }, 100)
   }
 
   const handleMouseDown = () => {
     focusWindow(window.id)
   }
 
-  // Clear dragging state when maximize/minimize happens
+  // Clear dragging and resizing state when maximize/minimize happens
   const handleMaximizeToggle = () => {
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current)
     }
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current)
+    }
     setIsDragging(false)
+    setIsResizing(false)
     maximizeWindow(window.id)
   }
 
@@ -95,7 +114,11 @@ export function Window({ window }: WindowProps) {
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current)
     }
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current)
+    }
     setIsDragging(false)
+    setIsResizing(false)
     minimizeWindow(window.id)
   }
 
@@ -103,7 +126,11 @@ export function Window({ window }: WindowProps) {
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current)
     }
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current)
+    }
     setIsDragging(false)
+    setIsResizing(false)
     closeWindow(window.id)
   }
 
@@ -125,8 +152,8 @@ export function Window({ window }: WindowProps) {
   // Use window bounds but we'll implement custom boundary checking
   const dragBounds = window.isMaximized ? undefined : "window"
 
-  const currentTransition = isDragging
-    ? { duration: 0 } // No animation during drag
+  const currentTransition = (isDragging || isResizing)
+    ? { duration: 0 } // No animation during drag or resize
     : { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }
 
 
@@ -151,6 +178,7 @@ export function Window({ window }: WindowProps) {
         onDragStart={handleDragStart}
         onDrag={handleDrag}
         onDragStop={handleDragStop}
+        onResizeStart={handleResizeStart}
         onResizeStop={handleResizeStop}
         onMouseDown={handleMouseDown}
         disableDragging={window.isMaximized}

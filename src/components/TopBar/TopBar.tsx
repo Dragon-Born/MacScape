@@ -52,7 +52,7 @@ export function TopBar() {
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <div
-        className="h-7 px-4 flex items-center justify-between text-sm"
+        className="h-7 px-1.5 flex items-center justify-between text-sm"
         style={{
           background: 'rgba(255, 255, 255, 0.25)',
           backdropFilter: 'blur(20px) saturate(150%)',
@@ -62,30 +62,30 @@ export function TopBar() {
         }}
       >
         {/* Left Side - Apple Logo & Menu Items */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
           {/* Apple Logo */}
-          <button className="flex items-center space-x-1 py-1 rounded transition-all duration-150 active:bg-white/20">
-            <span className="text-[1.2rem] text-white text-shadow-sm"></span>
+          <button className="flex items-center rounded-md transition-all duration-150 active:bg-white/20">
+            <span className="text-[1.2rem] text-white text-shadow-sm px-4"></span>
           </button>
           
           {/* App Menu Items */}
           <div className="flex items-center space-x-1 text-white font-medium text-[0.9rem]">
-            <button className="px-2 py-1 rounded transition-all duration-150 active:bg-white/20 text-shadow-sm font-bold">
+            <button className="px-2 py-1 rounded-md transition-all duration-150 active:bg-white/20 text-shadow-sm font-bold">
               Finder
             </button>
-            <button className="px-2 py-1 rounded transition-all duration-150 active:bg-white/20 text-shadow-sm">
+            <button className="px-2 py-1 rounded-md transition-all duration-150 active:bg-white/20 text-shadow-sm">
               File
             </button>
-            <button className="px-2 py-1 rounded transition-all duration-150 active:bg-white/20 text-shadow-sm">
+            <button className="px-2 py-1 rounded-md transition-all duration-150 active:bg-white/20 text-shadow-sm">
               Edit
             </button>
-            <button className="px-2 py-1 rounded transition-all duration-150 active:bg-white/20 text-shadow-sm">
+            <button className="px-2 py-1 rounded-md transition-all duration-150 active:bg-white/20 text-shadow-sm">
               View
             </button>
-            <button className="px-2 py-1 rounded transition-all duration-150 active:bg-white/20 text-shadow-sm">
+            <button className="px-2 py-1 rounded-md transition-all duration-150 active:bg-white/20 text-shadow-sm">
               Window
             </button>
-            <button className="px-2 py-1 rounded transition-all duration-150 active:bg-white/20 text-shadow-sm">
+            <button className="px-2 py-1 rounded-md transition-all duration-150 active:bg-white/20 text-shadow-sm">
               Help
             </button>
           </div>
@@ -95,7 +95,7 @@ export function TopBar() {
         <div className="flex items-center space-x-3">
           {/* System Status Icons */}
           <div className="flex items-center space-x-2">
-            <button className="p-1 rounded transition-all duration-150 hover:bg-white/20">
+            <button className="p-1 rounded-md transition-all duration-150 hover:bg-white/20">
               <svg className="w-5 h-5 text-white" viewBox="0 0 26 16" fill="currentColor">
                 {/* Battery body */}
                 <rect x="1" y="2" width="22" height="12" rx="2.5" ry="2.5" fill="none" stroke="currentColor" strokeWidth="1.2"/>
@@ -105,7 +105,7 @@ export function TopBar() {
                 <rect x="2.5" y="3.5" width="18.8" height="9" rx="1.5" ry="1.5" fill="currentColor"/>
               </svg>
             </button>
-            <button className="p-1 rounded transition-all duration-150 hover:bg-white/20">
+            <button className="p-1 rounded-md transition-all duration-150 hover:bg-white/20">
               <svg className="w-4 h-4 text-white" viewBox="0 0 146 104" fill="currentColor">
                 {/* WiFi icon with macOS design - 3 concentric arcs */}
                 <path d="m.707 30.407 13.139 13.138a83.621 83.621 0 0 1 118.249 0l13.139-13.139a102.256 102.256 0 0 0-144.527.001Z"/>
@@ -113,13 +113,13 @@ export function TopBar() {
                 <path d="m53.262 82.961 19.708 19.708 19.708-19.708a27.834 27.834 0 0 0-39.416 0Z"/>
               </svg>
             </button>
-            <button className="p-1 rounded transition-all duration-150 hover:bg-white/20">
+            <button className="p-1 rounded-md transition-all duration-150 hover:bg-white/20">
               <Volume2 className="w-4 h-4 text-white" />
             </button>
           </div>
 
           {/* Search */}
-          <button className="p-1 rounded transition-all duration-150 hover:bg-white/20">
+          <button className="p-1 rounded-md transition-all duration-150 hover:bg-white/20">
             <svg className="w-4 h-4 text-white" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="6.5" cy="6.5" r="4" />
               <path d="m13 13-3-3" strokeLinecap="round" />
@@ -129,7 +129,7 @@ export function TopBar() {
         
 
         {/* Siri */}
-        <button className="p-1 rounded transition-all duration-150 hover:bg-white/20">
+        <button className="p-1 rounded-md transition-all duration-150 hover:bg-white/20">
             <img 
               src="/TopBar/siri.png" 
               alt="Siri" 
@@ -137,11 +137,9 @@ export function TopBar() {
             />
           </button>
           {/* Date & Time */}
-          <div className="text-white font-medium text-[0.8rem]">
+          <button className="rounded-md transition-all duration-150 active:bg-white/20 text-white font-medium text-[0.9rem] pr-3 py-1.5 px-1">
             {mounted && currentTime ? formatTime(currentTime) : ''}
-          </div>
-
-        
+          </button>
         </div>
       </div>
     </motion.div>

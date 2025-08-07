@@ -33,7 +33,7 @@ export function WindowHeader({ title, onClose, onMinimize, onMaximize }: WindowH
             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <X className="w-1.5 h-1.5 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-150" strokeWidth={2.5} />
+          <X className="w-3 h-3 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-150" strokeWidth={2.5} />
         </button>
         
         {/* Minimize Button */}
@@ -46,7 +46,7 @@ export function WindowHeader({ title, onClose, onMinimize, onMaximize }: WindowH
             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <Minus className="w-1.5 h-1.5 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-150" strokeWidth={2.5} />
+          <Minus className="w-2 h-2 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-150" strokeWidth={2.5} />
         </button>
         
         {/* Maximize Button */}
@@ -59,7 +59,7 @@ export function WindowHeader({ title, onClose, onMinimize, onMaximize }: WindowH
             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <Square className="w-1 h-1 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-150" strokeWidth={2} />
+          <Square className="w-2 h-2 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-150" strokeWidth={2} />
         </button>
       </div>
 
