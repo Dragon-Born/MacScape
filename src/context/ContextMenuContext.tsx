@@ -47,7 +47,7 @@ export function ContextMenuProvider({ children }: { children: React.ReactNode })
     targetId?: string
   ) => {
     // Prevent context menu from going off-screen
-    const menuWidth = 90
+    const menuWidth = 120
     const menuHeight = items.length * 32 + 12
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight

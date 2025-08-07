@@ -21,7 +21,7 @@ export function ContextMenu() {
     <AnimatePresence>
       {contextMenu.isOpen && (
         <motion.div
-          className="fixed z-[9999] w-[120px] select-none"
+          className="fixed z-[9999] max-w-[220px] select-none"
           style={{
             left: contextMenu.x,
             top: contextMenu.y,
