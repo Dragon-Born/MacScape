@@ -298,8 +298,8 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
   )
 
   return (
-    <div className="h-full flex flex-col" style={{ background: theme.background }} onMouseDownCapture={handleFocusCapture}>
-      <div ref={termRef} className="flex-1 overflow-auto" style={{
+    <div className="h-full flex flex-col rounded-b-xl" style={{ background: theme.background }} onMouseDownCapture={handleFocusCapture}>
+      <div ref={termRef} className="flex-1 overflow-auto rounded-b-xl" style={{
         background: theme.background,
         color: theme.foreground,
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \'Liberation Mono\', \'Courier New\', monospace',
