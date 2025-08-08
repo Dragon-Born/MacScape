@@ -1,5 +1,9 @@
 ## macos-web
 
+<p align="center">
+  <img src="images/image.png" alt="macOS Web Desktop preview" width="900" />
+</p>
+
 A minimal macOS‑style desktop, built with pure Next.js + React. Windows, Dock, Top Bar, and a few demo apps (Notes, Terminal, Safari, VSCode, Music).
 
 ### Philosophy
