@@ -1,0 +1,1 @@
+export { TerminalView as TerminalApp } from './TerminalView' 

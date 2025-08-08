@@ -1,7 +1,10 @@
 import { NotesApp } from '@/components/AppViews/NotesApp'
 import { SafariBrowser } from '@/components/AppViews/SafariBrowser'
 import { VSCodeApp } from '@/components/AppViews/VSCodeApp'
+import { TerminalApp } from '@/components/AppViews/Terminal'
+import { TerminalHeader } from '@/components/AppViews/Terminal/TerminalHeader'
 import { ComponentType } from 'react'
+import { AppleMusicApp } from '../AppViews/AppleMusicApp'
 
 export interface DockAppConfig {
   id: string
@@ -51,13 +54,23 @@ export const dockApps: DockAppConfig[] = [
     defaultSize: { width: 1000, height: 600 }
   },
   {
+    id: 'music',
+    name: 'Music',
+    icon: '💻',
+    iconPath: '/AppIcons/music.png', // This one exists!
+    component: AppleMusicApp,
+    defaultPosition: { x: 250, y: 50 },
+    defaultSize: { width: 900, height: 600 }
+  },
+  {
     id: 'terminal',
     name: 'Terminal',
-    icon: '💻',
+    icon: '🖥️',
     iconPath: '/AppIcons/terminal.png', // This one exists!
-    component: NotesApp, // Placeholder
-    defaultPosition: { x: 200, y: 200 },
-    defaultSize: { width: 700, height: 500 }
+    component: TerminalApp,
+    customHeader: TerminalHeader,
+    defaultPosition: { x: 220, y: 120 },
+    defaultSize: { width: 820, height: 520 }
   },
   {
     id: 'notes',
