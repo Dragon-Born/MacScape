@@ -7,6 +7,12 @@ function add(spec: CommandSpec) {
   registry[spec.name] = spec
 }
 
+function alias(newName: string, existingName: string, description?: string) {
+  const base = registry[existingName]
+  if (!base) return
+  registry[newName] = { ...base, name: newName, description: description || `${base.description} (alias)` }
+}
+
 function padRight(s: string, n: number) {
   return s + ' '.repeat(Math.max(0, n - s.length))
 }
@@ -18,22 +24,39 @@ function humanDate(t: number) {
 
 add({
   name: 'help',
-  description: 'List available commands',
-  usage: 'help [command]'
-  , handler: (args) => {
+  description: 'List available commands or show help for one',
+  usage: 'help [command]',
+  handler: (args) => {
     if (args[0] && registry[args[0]]) {
       const c = registry[args[0]]
-      return { lines: [
-        `${c.name} - ${c.description}`,
-        ...(c.usage ? [`usage: ${c.usage}`] : [])
-      ]}
+      const lines = [`${c.name} - ${c.description}`]
+      if (c.usage) lines.push(`usage: ${c.usage}`)
+      return { lines }
     }
     const names = Object.keys(registry).sort()
-    return { lines: [
-      'Available commands:',
-      names.join('  '),
-      'Use `help <command>` to learn more.'
-    ]}
+    const maxName = Math.max(...names.map(n => n.length))
+    const rows: string[] = ['Available commands:']
+    for (const name of names) {
+      const desc = registry[name]?.description || ''
+      rows.push(`${padRight(name, maxName)}  - ${desc}`)
+    }
+    rows.push('Use `help <command>` or `man <command>` to learn more.')
+    return { lines: rows }
+  }
+})
+
+add({
+  name: 'man',
+  description: 'Show manual/help for a command',
+  usage: 'man <command>',
+  handler: (args) => {
+    const cmd = args[0]
+    if (!cmd) return { lines: ['usage: man <command>'] }
+    const c = registry[cmd]
+    if (!c) return { lines: [`man: ${cmd}: not found`] }
+    const lines = [`${c.name} - ${c.description}`]
+    if (c.usage) lines.push(`usage: ${c.usage}`)
+    return { lines }
   }
 })
 
@@ -42,6 +65,9 @@ add({
   description: 'Clear the terminal screen',
   handler: () => ({ clear: true })
 })
+
+// common aliases
+alias('cls', 'clear', 'Clear the terminal screen (alias)')
 
 add({
   name: 'echo',
@@ -77,8 +103,8 @@ add({
 add({
   name: 'ls',
   description: 'List directory contents',
-  usage: 'ls [-l] [-a] [path]'
-  , handler: (args, ctx) => {
+  usage: 'ls [-l] [-a] [path]',
+  handler: (args, ctx) => {
     const flags = new Set(args.filter(a => a.startsWith('-')).join('').replace(/-/g, '').split('').filter(Boolean))
     const pathArg = args.find(a => !a.startsWith('-')) || '.'
     const path = rootFs.resolve(ctx.cwd, pathArg)
@@ -150,17 +176,27 @@ add({
   }
 })
 
+// aliases for ls
+alias('dir', 'ls', 'List directory contents (alias)')
+
 add({
   name: 'cd',
   description: 'Change directory',
-  usage: 'cd [path]',
+  usage: 'cd [path] | cd - | cd ~',
   handler: (args, ctx) => {
     const targetArg = args[0] ?? '/'
-    const target = targetArg === '~' ? '/home/guest' : rootFs.resolve(ctx.cwd, targetArg)
-    if (!rootFs.exists(target)) return { lines: [`cd: ${targetArg}: No such file or directory`] }
-    if (!rootFs.isDir(target)) return { lines: [`cd: ${targetArg}: Not a directory`] }
-    ctx.setCwd(target)
-    return { cwd: target }
+    const resolved = targetArg === '~'
+      ? '/home/guest'
+      : targetArg === '-'
+        ? (ctx.env.OLDPWD || ctx.cwd)
+        : rootFs.resolve(ctx.cwd, targetArg)
+    if (!rootFs.exists(resolved)) return { lines: [`cd: ${targetArg}: No such file or directory`] }
+    if (!rootFs.isDir(resolved)) return { lines: [`cd: ${targetArg}: Not a directory`] }
+    const prev = ctx.cwd
+    ctx.setCwd(resolved)
+    ctx.setEnv('OLDPWD', prev)
+    if (targetArg === '-') return { cwd: resolved, lines: [resolved] }
+    return { cwd: resolved }
   }
 })
 
@@ -283,6 +319,9 @@ add({
   }
 })
 
+// common env aliases
+alias('printenv', 'env', 'Print environment variables (alias)')
+
 add({
   name: 'set',
   description: 'Set an environment variable',
@@ -297,18 +336,30 @@ add({
   }
 })
 
+// export alias behaves like set
+alias('export', 'set', 'Set an environment variable (alias)')
+
 add({
   name: 'theme',
-  description: 'Change terminal theme',
-  usage: 'theme [classic|monokai|dracula]',
+  description: 'Change or inspect terminal theme',
+  usage: 'theme [name] | theme list | theme current',
   handler: (args, ctx) => {
-    const next = (args[0] || '').toLowerCase()
+    const sub = (args[0] || '').toLowerCase()
     const allowed = ['classic', 'monokai', 'dracula']
-    if (!allowed.includes(next)) {
+    if (!sub) {
+      return { lines: [`Current theme: ${ctx.env.THEME}`, `Available themes: ${allowed.join(', ')}`] }
+    }
+    if (sub === 'list') {
+      return { lines: ['Available themes: ' + allowed.join(', ')] }
+    }
+    if (sub === 'current') {
+      return { lines: [`Current theme: ${ctx.env.THEME}`] }
+    }
+    if (!allowed.includes(sub)) {
       return { lines: ['Available themes: classic, monokai, dracula'] }
     }
-    ctx.setEnv('THEME', next)
-    return { lines: [`Theme set to ${next}`] }
+    ctx.setEnv('THEME', sub)
+    return { lines: [`Theme set to ${sub}`] }
   }
 })
 
@@ -317,12 +368,18 @@ add({
   description: 'Open a URL in a new tab',
   usage: 'open <url>',
   handler: (args) => {
-    if (!args[0]) return { lines: ['usage: open <url>'] }
+    const raw = args[0]
+    if (!raw) return { lines: ['usage: open <url>'] }
     try {
-      window.open(args[0], '_blank', 'noopener,noreferrer')
-      return { lines: [`Opening ${args[0]}...`] }
+      const toUrl = (s: string) => /:\/\//.test(s) ? s : `https://${s}`
+      const urlStr = toUrl(raw)
+      // validate
+      // eslint-disable-next-line no-new
+      new URL(urlStr)
+      window.open(urlStr, '_blank', 'noopener,noreferrer')
+      return { lines: [`Opening ${urlStr}...`] }
     } catch {
-      return { lines: ['Failed to open URL'] }
+      return { lines: ['open: invalid URL'] }
     }
   }
 })
@@ -347,7 +404,7 @@ add({
     const [src, dest] = args
     if (!src || !dest) return { lines: ['usage: mv <src> <dest>'] }
     try {
-      (rootFs as any).rename(rootFs.resolve(ctx.cwd, src), rootFs.resolve(ctx.cwd, dest))
+      ;(rootFs as any).rename(rootFs.resolve(ctx.cwd, src), rootFs.resolve(ctx.cwd, dest))
       return {}
     } catch (e: any) {
       return { lines: [`mv: ${e.message}`] }
@@ -422,14 +479,19 @@ add({
 add({
   name: 'grep',
   description: 'Search for patterns in files',
-  usage: 'grep <pattern> <file>',
+  usage: 'grep [-i] [-n] <pattern> <file>',
   handler: (args, ctx) => {
-    const [pattern, file] = args
-    if (!pattern || !file) return { lines: ['usage: grep <pattern> <file>'] }
+    const flags = new Set(args.filter(a => a.startsWith('-')).join('').replace(/-/g, '').split('').filter(Boolean))
+    const nonFlags = args.filter(a => !a.startsWith('-'))
+    const [pattern, file] = nonFlags
+    if (!pattern || !file) return { lines: ['usage: grep [-i] [-n] <pattern> <file>'] }
     try {
-      const re = new RegExp(pattern)
+      const re = new RegExp(pattern, flags.has('i') ? 'i' : undefined)
       const list = rootFs.readFile(rootFs.resolve(ctx.cwd, file)).split('\n')
-      const out = list.filter(l => re.test(l))
+      const out = list
+        .map((l, idx) => ({ l, idx }))
+        .filter(({ l }) => re.test(l))
+        .map(({ l, idx }) => flags.has('n') ? `${idx + 1}:${l}` : l)
       return { lines: out.length ? out : ['(no matches)'] }
     } catch (e: any) {
       return { lines: [`grep: ${e.message}`] }
@@ -478,7 +540,17 @@ add({
 add({
   name: 'history',
   description: 'Show command history',
-  handler: (_a, ctx) => ({ lines: ctx.history.map((h, i) => `${i + 1}  ${h}`) })
+  usage: 'history [-n N]',
+  handler: (args, ctx) => {
+    const nIdx = args.indexOf('-n')
+    if (nIdx !== -1) {
+      const val = parseInt(args[nIdx + 1] || '', 10)
+      if (!Number.isFinite(val) || val <= 0) return { lines: ['usage: history [-n N]'] }
+      const slice = ctx.history.slice(-val)
+      return { lines: slice.map((h, i) => `${ctx.history.length - slice.length + i + 1}  ${h}`) }
+    }
+    return { lines: ctx.history.map((h, i) => `${i + 1}  ${h}`) }
+  }
 })
 
 add({

@@ -5,6 +5,7 @@ import { TerminalApp } from '@/components/AppViews/Terminal'
 import { TerminalHeader } from '@/components/AppViews/Terminal/TerminalHeader'
 import { ComponentType } from 'react'
 import { AppleMusicApp } from '../AppViews/AppleMusicApp'
+import { CalculatorApp } from '@/components/AppViews/Calculator'
 
 export interface DockAppConfig {
   id: string
@@ -86,9 +87,10 @@ export const dockApps: DockAppConfig[] = [
     name: 'Calculator',
     icon: '🧮',
     iconPath: '/AppIcons/calculator.png',
-    component: NotesApp, // Placeholder - we'll create more apps later
+    component: CalculatorApp,
+    hasOwnHeader: true,
     defaultPosition: { x: 150, y: 150 },
-    defaultSize: { width: 300, height: 400 }
+    defaultSize: { width: 160, height: 520 }
   }
 ]
 

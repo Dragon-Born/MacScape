@@ -239,8 +239,28 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
 
   const handleKeyDownGlobal = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-      if (currentAbortRef.current) {
-        currentAbortRef.current.abort('user')
+      e.preventDefault()
+      if (isRunning) {
+        if (currentAbortRef.current) {
+          currentAbortRef.current.abort('user')
+        }
+        return
+      }
+      if (!isRunning && input) {
+        const snapshot = { promptUser: env.USER, promptHost: env.HOST, promptCwd: cwd }
+        setLines(prev => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            type: 'input',
+            text: input + '^C',
+            promptUser: snapshot.promptUser,
+            promptHost: snapshot.promptHost,
+            promptCwd: snapshot.promptCwd,
+          },
+        ])
+        setInput('')
+        return
       }
     }
   }

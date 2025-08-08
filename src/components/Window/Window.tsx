@@ -245,6 +245,11 @@ export function Window({ window }: WindowProps) {
   }
 
   const handleMouseDown = () => {
+    const topZ = windows.length ? Math.max(...windows.map(w => w.zIndex)) : window.zIndex
+    if (window.zIndex === topZ) {
+      debugLog('MouseDownFocus[Ignored:AlreadyTop]', { zIndex: window.zIndex })
+      return
+    }
     focusWindow(window.id)
     debugLog('MouseDownFocus', { zIndex: window.zIndex })
   }
@@ -391,9 +396,9 @@ export function Window({ window }: WindowProps) {
        <motion.div   
          className="h-full flex flex-col"
          style={{
-           background: 'rgba(255, 255, 255, 0.85)',
+           background: 'rgba(255, 255, 255, 0.65)',
            backdropFilter: 'blur(20px) saturate(150%)',
-           WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+           WebkitBackdropFilter: 'blur(50px) saturate(150%)',
            border: '1px solid rgba(255, 255, 255, 0.3)'
          }}
          animate={{
