@@ -4,40 +4,60 @@
   <img src="images/image.png" alt="macOS Web Desktop preview" width="900" />
 </p>
 
-A minimal macOS‑style desktop, built with pure Next.js + React. Windows, Dock, Top Bar, and a few demo apps (Notes, Terminal, Safari, VSCode, Music).
+A minimal macOS‑style desktop built with Next.js + React. It includes a window manager, Dock, Top Bar, a desktop context menu, and several demo apps (Notes, Terminal, Safari, VSCode, Music, Calculator).
 
-### Philosophy
+### Why
 - **KISS + YAGNI**: simple state, straightforward components
 - **Pure Next.js**: no backend, no DB, no heavy state libraries
-- **Small helpers only**: a few lightweight libs where they earn their keep
+- **Small helpers**: only where they earn their keep
 
-### Tiny stack
-- **Next.js 15** (App Router)
-- **React 19**
-- **Tailwind CSS 4** for styling
-- **framer-motion** for subtle animations
-- **react-rnd** for window drag/resize
-- **@radix-ui/react-dropdown-menu** for context menus
-- Optional utilities: **clsx**, **class-variance-authority**, **tailwind-merge**, **next-themes**, icons
+### Features
+- **Windows**: move, resize, minimize, maximize, focus with z‑index, smooth animations
+- **Dock**: launch apps; running indicators
+- **Top Bar**: app title, date/time, and mock controls
+- **Desktop**: selection frame and right‑click context menu
+- **Keyboard friendly**: common keys in Terminal and Calculator
+- **No server**: fully client‑side demo
 
-That’s it. No Redux, no server, no ORM.
+### Included apps
+- **Notes**: minimal editor (placeholder)
+- **Terminal**: in‑browser shell with a small in‑memory FS
+- **Safari**: simple browser mock landing page
+- **VSCode**: static mock UI
+- **Music**: static mock UI
+- **Calculator**: macOS‑style keypad with live expression view
 
-### Key pieces
-- `src/context/WindowManagerContext.tsx` — window lifecycle (open/close/minimize/maximize), focus and z‑index
-- `src/components/Desktop.tsx` — desktop surface and right‑click menu
-- `src/components/Dock/` — dock UI and app launcher (`Dock.tsx`, `dockConfig.ts`)
-- `src/components/Window/Window.tsx` — window frame with drag/resize/maximize animations
-- `src/components/AppViews/NotesApp.tsx` — minimal notes editor
-- `src/components/AppViews/Terminal/` — in‑browser terminal with a small in‑memory FS
-
-### Run locally
+### Quick start
 - Install: `npm install`
 - Dev: `npm run dev`
 - Build: `npm run build`
+- Start: `npm start`
+
+Requires Node 18.18+ (or Node 20+) for Next.js 15.
+
+### Keyboard shortcuts
+- **Calculator**
+  - Digits: `0-9`
+  - Decimal: `.`
+  - Ops: `+`, `-`, `*`, `/`
+  - Equals: `Enter` or `=`
+  - Clear: `c`
+  - Percent: `%`
+  - Toggle sign: `+/-` button
+- **Windows**
+  - Double‑click window header: toggle maximize
+  - Option/Alt + double‑click header: minimize
+
+### Project structure
+- `src/context/WindowManagerContext.tsx` — window lifecycle and z‑index
+- `src/components/Desktop.tsx` — desktop surface and context menu
+- `src/components/Dock/` — dock UI and app launcher (`Dock.tsx`, `dockConfig.ts`)
+- `src/components/Window/Window.tsx` — window frame, drag/resize/maximize
+- `src/components/AppViews/` — built‑in demo apps (Notes, Terminal, Safari, VSCode, Music, Calculator)
 
 ### Add an app to the Dock
-1) Create your app component.
-2) Add an entry in `src/components/Dock/dockConfig.ts` under `dockApps`:
+1) Create your app component under `src/components/AppViews/`.
+2) Add an entry to `src/components/Dock/dockConfig.ts` under `dockApps`:
 
 ```ts
 {
@@ -50,4 +70,14 @@ That’s it. No Redux, no server, no ORM.
 }
 ```
 
-Launch it from the Dock; the window system takes care of positioning, focus, and resizing.
+### Deployment
+- **Vercel**: standard Next.js project → import, build, deploy
+- **Cloudflare Pages**: `npm run build` then `npm run pages:deploy` (uses the included script)
+
+### Notes on assets
+The UI mimics macOS visuals for educational/demo purposes. Avoid redistributing Apple‑owned icons/logos in production. Replace with your own assets or open‑licensed alternatives where necessary.
+
+### License
+MIT © 2025 Arian
+
+— PRs to improve accessibility, keyboard support, and more demo apps are welcome!
