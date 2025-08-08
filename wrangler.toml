@@ -1,9 +1,0 @@
-name = "wait-wat-riddle"
-compatibility_date = "2024-12-19"
-pages_build_output_dir = "out"
-
-[env.production]
-name = "riddle-site"
-
-[env.preview]
-name = "riddle-site-preview"    

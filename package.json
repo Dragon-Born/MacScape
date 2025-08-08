@@ -1,6 +1,6 @@
 {
-  "name": "dopa-landing",
-  "version": "0.1.0",
+  "name": "macos-web",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

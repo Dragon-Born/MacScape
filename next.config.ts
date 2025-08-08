@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
   // Optimize for static hosting
   generateBuildId: async () => {
     // Use a consistent build ID for static deployment
-    return 'dopa-static-build';
+    return 'macos-static-build';
   },
   
   // Configure base path if needed (leave empty for root domain)
