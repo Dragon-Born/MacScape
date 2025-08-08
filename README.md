@@ -1,4 +1,4 @@
-## macos-web
+## MacScape
 
 <p align="center">
   <img src="images/image.png" alt="macOS Web Desktop preview" width="900" />
@@ -62,11 +62,11 @@ Requires Node 18.18+ (or Node 20+) for Next.js 15.
   - Option/Alt + double‑click header: minimize
 
 ### Project structure
-- `src/context/WindowManagerContext.tsx` — window lifecycle and z‑index
-- `src/components/Desktop.tsx` — desktop surface and context menu
-- `src/components/Dock/` — dock UI and app launcher (`Dock.tsx`, `dockConfig.ts`)
-- `src/components/Window/Window.tsx` — window frame, drag/resize/maximize
-- `src/components/AppViews/` — built‑in demo apps (Notes, Terminal, Safari, VSCode, Music, Calculator)
+- `src/context/WindowManagerContext.tsx` - window lifecycle and z‑index
+- `src/components/Desktop.tsx` - desktop surface and context menu
+- `src/components/Dock/` - dock UI and app launcher (`Dock.tsx`, `dockConfig.ts`)
+- `src/components/Window/Window.tsx` - window frame, drag/resize/maximize
+- `src/components/AppViews/` - built‑in demo apps (Notes, Terminal, Safari, VSCode, Music, Calculator)
 
 ### Add an app to the Dock
 1) Create your app component under `src/components/AppViews/`.
@@ -91,6 +91,6 @@ Requires Node 18.18+ (or Node 20+) for Next.js 15.
 The UI mimics macOS visuals for educational/demo purposes. Avoid redistributing Apple‑owned icons/logos in production. Replace with your own assets or open‑licensed alternatives where necessary.
 
 ### License
-MIT © 2025 Arian
+MIT
 
-— PRs to improve accessibility, keyboard support, and more demo apps are welcome!
+- PRs to improve accessibility, keyboard support, and more demo apps are welcome!
