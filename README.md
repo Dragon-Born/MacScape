@@ -4,6 +4,12 @@
   <img src="images/image.png" alt="macOS Web Desktop preview" width="900" />
 </p>
 
+<p align="center">
+  <a href="#"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-15-black" /></a>
+  <a href="#"><img alt="React" src="https://img.shields.io/badge/React-19-61dafb" /></a>
+  <a href="#"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a>
+</p>
+
 A minimal macOS‑style desktop built with Next.js + React. It includes a window manager, Dock, Top Bar, a desktop context menu, and several demo apps (Notes, Terminal, Safari, VSCode, Music, Calculator).
 
 ### Why
@@ -44,6 +50,13 @@ Requires Node 18.18+ (or Node 20+) for Next.js 15.
   - Clear: `c`
   - Percent: `%`
   - Toggle sign: `+/-` button
+- **Terminal**
+  - Run command: `Enter`
+  - History: `ArrowUp` / `ArrowDown`
+  - Clear screen: `Ctrl+L` or `Cmd+L`
+  - Abort running command: `Ctrl+C` or `Cmd+C`
+  - Autocomplete: `Tab`
+
 - **Windows**
   - Double‑click window header: toggle maximize
   - Option/Alt + double‑click header: minimize
