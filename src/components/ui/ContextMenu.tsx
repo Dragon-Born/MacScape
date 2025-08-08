@@ -1,13 +1,23 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useContextMenu, ContextMenuItem } from '@/context/ContextMenuContext'
 
 export function ContextMenu() {
   const { contextMenu, closeContextMenu } = useContextMenu()
 
-  if (!contextMenu?.isOpen) return null
+  const isOpen = !!contextMenu?.isOpen
+
+  const isDark = useMemo(() => {
+    if (typeof document === 'undefined') return false
+    return (
+      document.documentElement.classList.contains('dark') ||
+      document.body.classList.contains('dark')
+    )
+  }, [isOpen])
+
+  if (!isOpen) return null
 
   const handleItemClick = (item: ContextMenuItem, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -19,93 +29,86 @@ export function ContextMenu() {
 
   return (
     <AnimatePresence>
-      {contextMenu.isOpen && (
+      {isOpen && (
         <motion.div
-          className="fixed z-[9999] max-w-[220px] select-none"
+          className="fixed select-none"
           style={{
-            left: contextMenu.x,
-            top: contextMenu.y,
+            left: contextMenu!.x,
+            top: contextMenu!.y,
+            zIndex: 10000,
           }}
-          initial={{ opacity: 0, scale: 0.95, y: -5 }}
+          initial={{ opacity: 0, scale: 0.98, y: -4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -5 }}
-          transition={{
-            duration: 0.15,
-            ease: [0.25, 0.46, 0.45, 0.94]
-          }}
+          exit={{ opacity: 0, scale: 0.98, y: -4 }}
+          transition={{ duration: 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <div
-            className="backdrop-blur-xl rounded-md shadow-2xl border overflow-hidden"
+                      <div
+            className={`container ${isDark ? '' : ''}`}
             style={{
-              background: 'rgba(255, 255, 255, 0.45)',
-              backdropFilter: 'blur(40px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              boxShadow: `
-                0 10px 40px rgba(0, 0, 0, 0.2),
-                0 4px 12px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6)
-              `,
+              minWidth: '12rem',
+              maxWidth: '14rem',
+              padding: '0.5rem',
+              backgroundColor: isDark
+                ? 'hsla(var(--system-color-light-hsl, 240, 24%, 100%), .5)'
+                : 'hsla(var(--system-color-light-hsl, 240, 24%, 100%), .8)',
+              boxShadow: '#0000004d 0px 0px 6px 0px, inset 0 0 0 .9px hsla(0,0%,100%,.4)',
+              borderRadius: '0.5rem',
+              WebkitUserSelect: 'none',
+              userSelect: 'none',
+              WebkitBackdropFilter: 'blur(15px)',
+              backdropFilter: 'blur(15px)',
             }}
           >
-            <div className="py-0.5">
-              {contextMenu.items.map((item, index) => (
+            <div className="py-0">
+              {contextMenu!.items.map((item) => (
                 <React.Fragment key={item.id}>
                   {item.separator ? (
-                    <div 
-                      className="mx-1.5 my-0.5 border-t"
-                      style={{ borderColor: 'rgba(0, 0, 0, 0.1)' }}
+                    <div
+                      className="divider"
+                      style={{
+                        height: '1px',
+                        margin: '0.2rem 0.7rem 0.2rem 0.7rem',
+                        background:
+                          isDark
+                            ? 'linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1))'
+                            : 'linear-gradient(to right, rgba(0,0,0,0.06), rgba(0,0,0,0.12), rgba(0,0,0,0.06))',
+                      }}
                     />
                   ) : (
                     <button
-                      className={`
-                        w-full px-1 py-1 text-left text-xs transition-all duration-150
-                        ${item.disabled 
-                          ? 'text-gray-400 cursor-not-allowed' 
-                          : 'text-gray-800 cursor-pointer'
-                        }
-                      `}
+                      className="menu-item w-full text-left rounded px-1 py-1"
                       onClick={(e) => handleItemClick(item, e)}
                       disabled={item.disabled}
                       style={{
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
-                        fontSize: '12px',
+                        padding: '0.3rem 0.4rem ',
+                      
+                        fontSize: '12.5px',
                         fontWeight: '400',
+                        color: item.disabled
+                          ? (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)')
+                          : (isDark ? 'rgba(10, 10, 10, 1)' : 'rgba(0,0,0,0.80)'),
+                        cursor: item.disabled ? 'not-allowed' : 'pointer',
+                        border: 'none',
+                        background: 'transparent',
                       }}
                       onMouseEnter={(e) => {
-                        if (!item.disabled) {
-                          const target = e.currentTarget
-                          const hoverBg = target.querySelector('.hover-bg') as HTMLElement
-                          const textEl = target.querySelector('.hover-text') as HTMLElement
-                          if (hoverBg) {
-                            hoverBg.style.backgroundColor = 'rgb(59, 130, 246)'
-                          }
-                          if (textEl) {
-                            textEl.style.color = 'white'
-                          }
+                        if (item.disabled) return
+                        const btn = e.currentTarget as HTMLButtonElement
+                        if (isDark) {
+                          btn.style.backgroundColor = 'var(--system-color-primary, #0a85ff)'
+                          btn.style.color = '#ffffff'
+                        } else {
+                          btn.style.backgroundColor = 'rgba(0,0,0,0.08)'
                         }
                       }}
                       onMouseLeave={(e) => {
-                        const target = e.currentTarget
-                        const hoverBg = target.querySelector('.hover-bg') as HTMLElement
-                        const textEl = target.querySelector('.hover-text') as HTMLElement
-                        if (hoverBg) {
-                          hoverBg.style.backgroundColor = 'transparent'
-                        }
-                        if (textEl) {
-                          textEl.style.color = 'rgb(31, 41, 55)' // text-gray-800
-                        }
+                        const btn = e.currentTarget as HTMLButtonElement
+                        btn.style.backgroundColor = 'transparent'
+                        btn.style.color = isDark ? 'rgba(10, 10, 10, 0.85)' : 'rgba(0,0,0,0.80)'
                       }}
                     >
-                      <div 
-                        className="hover-bg transition-all duration-150 rounded px-2 py-1.5 mx-1"
-                        style={{ backgroundColor: 'transparent' }}
-                      >
-                        <span className="hover-text transition-colors duration-150">
-                          {item.label}
-                        </span>
-                      </div>
+                      {item.label}
                     </button>
                   )}
                 </React.Fragment>
