@@ -87,23 +87,18 @@ add({
 
     let items = rootFs.list(path)
 
-    // Include '.' and '..' when -a is provided
     if (flags.has('a')) {
       const parentParts = path.split('/').filter(Boolean)
       parentParts.pop()
       const parentPath = '/' + parentParts.join('/') || '/'
       items = ['.', '..', ...items]
-      // Short listing with -a
       if (!flags.has('l')) {
         return { lines: [items.join('  ')] }
       }
-      // Long listing with -a requires stats for '.' and '..'
       const rows: string[] = []
       const maxName = Math.max(4, ...items.map(n => n.length + (n !== '.' && n !== '..' && rootFs.isDir(rootFs.resolve(path, n)) ? 1 : 0)))
       rows.push(padRight('name', maxName) + '  type  size  updated')
       rows.push('-'.repeat(maxName + 2 + 4 + 2 + 6 + 2 + 16))
-
-      // '.'
       const stDot = (rootFs as any).stat(path)
       rows.push(
         padRight('.', maxName) + '  ' +
@@ -111,7 +106,6 @@ add({
         padRight(String(stDot.size), 6) + '  ' +
         humanDate(stDot.updatedAt)
       )
-      // '..'
       const stDotDot = (rootFs as any).stat(parentPath)
       rows.push(
         padRight('..', maxName) + '  ' +
@@ -119,7 +113,6 @@ add({
         padRight(String(stDotDot.size), 6) + '  ' +
         humanDate(stDotDot.updatedAt)
       )
-      // others
       const rest = rootFs.list(path)
       for (const name of rest) {
         const childPath = rootFs.resolve(path, name)
@@ -135,7 +128,6 @@ add({
       return { lines: rows }
     }
 
-    // No -a flag
     if (!flags.has('l')) {
       return { lines: [items.join('  ')] }
     }
@@ -211,7 +203,6 @@ add({
     const path = rootFs.resolve(ctx.cwd, pathArg)
     try {
       if (recursive) {
-        // recursively create each segment
         const parts = path.split('/').filter(Boolean)
         let p = ''
         for (const part of parts) {
@@ -240,7 +231,6 @@ add({
 
     try {
       if (recursive && (rootFs.isDir(path))) {
-        // naive recursive remove: list and delete contents first
         const stack = [path]
         const toDelete: string[] = []
         while (stack.length) {
@@ -256,7 +246,6 @@ add({
             toDelete.push(current)
           }
         }
-        // delete files then dirs (reverse order ensures children first)
         for (const p of toDelete.sort((a, b) => b.length - a.length)) {
           if (rootFs.isDir(p)) (rootFs as any).rmdir(p)
           else rootFs.rm(p)
@@ -350,7 +339,6 @@ add({
   })
 })
 
-// New commands
 add({
   name: 'mv',
   description: 'Move/rename a file',
@@ -390,8 +378,12 @@ add({
   handler: (args, ctx) => {
     let count = 10
     const nIdx = args.indexOf('-n')
-    if (nIdx !== -1 && args[nIdx + 1]) count = Math.max(1, parseInt(args[nIdx + 1], 10) || 10)
-    const file = args.find((a, i) => i !== nIdx && i !== nIdx + 1)
+    if (nIdx !== -1) {
+      const nVal = args[nIdx + 1]
+      if (!nVal) return { lines: ['usage: head [-n N] <file>'] }
+      count = Math.max(1, parseInt(nVal, 10) || 10)
+    }
+    const file = nIdx === -1 ? args[0] : args.filter((_, i) => i !== nIdx && i !== nIdx + 1)[0]
     if (!file) return { lines: ['usage: head [-n N] <file>'] }
     try {
       const lines = rootFs.readFile(rootFs.resolve(ctx.cwd, file)).split('\n').slice(0, count)
@@ -409,14 +401,18 @@ add({
   handler: (args, ctx) => {
     let count = 10
     const nIdx = args.indexOf('-n')
-    if (nIdx !== -1 && args[nIdx + 1]) count = Math.max(1, parseInt(args[nIdx + 1], 10) || 10)
-    const file = args.find((a, i) => i !== nIdx && i !== nIdx + 1)
+    if (nIdx !== -1) {
+      const nVal = args[nIdx + 1]
+      if (!nVal) return { lines: ['usage: tail [-n N] <file>'] }
+      count = Math.max(1, parseInt(nVal, 10) || 10)
+    }
+    const file = nIdx === -1 ? args[0] : args.filter((_, i) => i !== nIdx && i !== nIdx + 1)[0]
     if (!file) return { lines: ['usage: tail [-n N] <file>'] }
     try {
       const content = rootFs.readFile(rootFs.resolve(ctx.cwd, file))
       const split = content.split('\n')
-      const lines = split.slice(Math.max(0, split.length - count))
-      return { lines }
+      const out = split.slice(Math.max(0, split.length - count))
+      return { lines: out }
     } catch (e: any) {
       return { lines: [`tail: ${e.message}`] }
     }
@@ -512,6 +508,77 @@ add({
     const [cmd] = args
     if (!cmd) return { lines: ['usage: which <command>'] }
     return { lines: [registry[cmd] ? `/bin/${cmd}` : `${cmd} not found`] }
+  }
+})
+
+add({
+  name: 'ping',
+  description: 'Ping a host using browser fetch timings',
+  usage: 'ping [-c N] <host|url>',
+  handler: async (args, ctx) => {
+    let count = 4
+    const cIdx = args.indexOf('-c')
+    if (cIdx !== -1) {
+      const val = args[cIdx + 1]
+      if (!val) return { lines: ['usage: ping [-c N] <host|url>'] }
+      count = Math.max(1, parseInt(val, 10) || 4)
+    }
+    const targetArg = cIdx === -1 ? args[0] : args.filter((_, i) => i !== cIdx && i !== cIdx + 1)[0]
+    if (!targetArg) return { lines: ['usage: ping [-c N] <host|url>'] }
+
+    const toUrl = (s: string) => /:\/\//.test(s) ? s : `https://${s}`
+    const url = toUrl(targetArg)
+
+    const results: number[] = []
+    ctx.println(`PING ${targetArg} with browser fetch (${count} packets)`)    
+
+    const delay = (ms: number, signal?: AbortSignal) => new Promise<void>((resolve) => {
+      const t = setTimeout(() => resolve(), ms)
+      if (signal) {
+        const onAbort = () => { clearTimeout(t); resolve() }
+        signal.addEventListener('abort', onAbort, { once: true })
+      }
+    })
+
+    for (let i = 0; i < count; i++) {
+      if (ctx.signal.aborted) {
+        throw new Error('abort')
+      }
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort('timeout'), 5000)
+      const onAbort = () => controller.abort('user')
+      ctx.signal.addEventListener('abort', onAbort, { once: true })
+      const start = performance.now()
+      try {
+        await fetch(url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store', signal: controller.signal })
+        const ms = Math.round(performance.now() - start)
+        results.push(ms)
+        ctx.println(`seq=${i} time=${ms} ms`)
+      } catch (e: any) {
+        if (ctx.signal.aborted) {
+          throw new Error('abort')
+        }
+        ctx.println(`seq=${i} timeout`)
+      } finally {
+        clearTimeout(timeout)
+        ctx.signal.removeEventListener('abort', onAbort as any)
+      }
+      await delay(400, ctx.signal)
+    }
+
+    if (results.length) {
+      const min = Math.min(...results)
+      const max = Math.max(...results)
+      const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length)
+      ctx.println(`--- ${targetArg} ping statistics ---`)
+      ctx.println(`${count} packets transmitted, ${results.length} received`)
+      ctx.println(`rtt min/avg/max = ${min}/${avg}/${max} ms`)
+    } else {
+      ctx.println(`--- ${targetArg} ping statistics ---`)
+      ctx.println(`${count} packets transmitted, 0 received`)
+    }
+
+    return {}
   }
 })
 

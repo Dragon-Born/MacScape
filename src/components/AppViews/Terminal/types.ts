@@ -90,4 +90,5 @@ export interface CommandContext {
   println: (text?: string) => void
   clear: () => void
   history: string[]
+  signal: AbortSignal
 } 

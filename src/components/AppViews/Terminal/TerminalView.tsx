@@ -30,6 +30,8 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
   const termRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const welcomedRef = useRef(false)
+  const currentAbortRef = useRef<AbortController | null>(null)
+  const [isRunning, setIsRunning] = useState(false)
 
   const theme = resolveTheme(env.THEME)
   const registry = useMemo(() => getRegistry(), [])
@@ -53,11 +55,11 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
   }, [lines])
 
   useEffect(() => {
-    const focus = () => inputRef.current?.focus()
-    focus()
-  }, [])
+    if (!isRunning) {
+      inputRef.current?.focus()
+    }
+  }, [isRunning])
 
-  // Listen globally so header (sibling) can trigger theme toggle
   useEffect(() => {
     const handler = () => {
       setEnvState(prev => ({
@@ -68,6 +70,17 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
     window.addEventListener('terminal-theme-toggle', handler as any)
     return () => window.removeEventListener('terminal-theme-toggle', handler as any)
   }, [])
+
+  useEffect(() => {
+    if (!isRunning) return
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        if (currentAbortRef.current) currentAbortRef.current.abort('user')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isRunning])
 
   const setEnv = (key: string, value: string) => {
     setEnvState(prev => ({ ...prev, [key]: value }))
@@ -116,6 +129,10 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
       },
     ])
 
+    setIsRunning(true)
+    const controller = new AbortController()
+    currentAbortRef.current = controller
+
     const [cmd, ...args] = raw.split(' ').filter(Boolean)
     const spec = registry[cmd]
 
@@ -141,20 +158,31 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
       println,
       clear,
       history,
+      signal: controller.signal,
     }
 
     if (!spec) {
       println(`command not found: ${cmd}`)
+      currentAbortRef.current = null
+      setIsRunning(false)
       return
     }
     try {
       const result = await spec.handler(args, ctx as any)
-      if (!result) return
-      if (result.clear) clear()
-      if (result.lines) result.lines.forEach((l: string) => println(l))
-      if (result.cwd) setCwd(result.cwd)
+      if (result) {
+        if (result.clear) clear()
+        if (result.lines) result.lines.forEach((l: string) => println(l))
+        if (result.cwd) setCwd(result.cwd)
+      }
     } catch (e: any) {
-      println(String(e?.message || e))
+      if (controller.signal.aborted) {
+        println('^C')
+      } else {
+        println(String(e?.message || e))
+      }
+    } finally {
+      currentAbortRef.current = null
+      setIsRunning(false)
     }
   }
 
@@ -206,7 +234,15 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
   const handleFocusCapture = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement
     if (target.closest('.window-drag-handle')) return
-    inputRef.current?.focus()
+    if (!isRunning) setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const handleKeyDownGlobal = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+      if (currentAbortRef.current) {
+        currentAbortRef.current.abort('user')
+      }
+    }
   }
 
   function commonPrefix(strings: string[]): string {
@@ -222,6 +258,7 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
   }
 
   function completeOnTab() {
+    if (isRunning) return
     const value = input
     const cursorAtEnd = inputRef.current?.selectionStart === value.length
     if (!cursorAtEnd) return
@@ -230,7 +267,6 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
     const tokens = value.trimLeft().split(/\s+/).filter(Boolean)
     const isFirstToken = tokens.length <= 1 && !endsWithSpace
 
-    // Command completion
     if (isFirstToken) {
       const partial = tokens[0] || ''
       if (!partial) return
@@ -250,7 +286,6 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
       return
     }
 
-    // File/path completion for last token
     const parts = value.split(/\s+/)
     const last = parts[parts.length - 1]
     if (!last) return
@@ -299,7 +334,7 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
 
   return (
     <div className="h-full flex flex-col rounded-b-xl" style={{ background: theme.background }} onMouseDownCapture={handleFocusCapture}>
-      <div ref={termRef} className="flex-1 overflow-auto rounded-b-xl" style={{
+      <div ref={termRef} className="flex-1 overflow-auto rounded-b-xl" onMouseDown={handleFocusCapture} style={{
         background: theme.background,
         color: theme.foreground,
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \'Liberation Mono\', \'Courier New\', monospace',
@@ -317,30 +352,37 @@ export function TerminalView({ onClose, onMinimize, onMaximize }: TerminalViewPr
             </div>
           ))}
 
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <div className="shrink-0">
-              <PromptInline />
-            </div>
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowUp') { e.preventDefault(); navigateHistory('up') }
-                if (e.key === 'ArrowDown') { e.preventDefault(); navigateHistory('down') }
-                if (e.key === 'l' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); clear() }
-                if (e.key === 'Tab') { e.preventDefault(); completeOnTab() }
-              }}
-              className="flex-1 bg-transparent outline-none placeholder:opacity-50"
-              style={{ color: theme.foreground, caretColor: theme.cursor }}
-              autoFocus
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              placeholder="Type a command..."
-            />
-          </form>
+          {!isRunning && (
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <div className="shrink-0">
+                <PromptInline />
+              </div>
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowUp') { e.preventDefault(); navigateHistory('up') }
+                  if (e.key === 'ArrowDown') { e.preventDefault(); navigateHistory('down') }
+                  if (e.key === 'l' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); clear() }
+                  if (e.key === 'Tab') { e.preventDefault(); completeOnTab() }
+                  handleKeyDownGlobal(e)
+                }}
+                className="flex-1 bg-transparent outline-none placeholder:opacity-50"
+                style={{ color: theme.foreground, caretColor: theme.cursor }}
+                autoFocus
+                spellCheck={false}
+                autoCapitalize="off"
+                autoCorrect="off"
+                placeholder="Type a command..."
+              />
+            </form>
+          )}
+
+          {isRunning && (
+            <div className="text-xs opacity-60">Running… (Press Ctrl+C to abort)</div>
+          )}
         </div>
       </div>
     </div>
